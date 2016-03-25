@@ -24,7 +24,7 @@ end entity buzzer;
 architecture buzzer of buzzer is
 begin
 	--valid when atleast one from any of in and out is on
-	--valid <= (boggis0 or bunce0 or bean0) and (boggis1 or bunce1 or bean1);
-	valid <= (boggis0 or boggis1) or (bunce0 or bunce1) or (bean0 or bean1);
+	valid <= (boggis0 or bunce0 or bean0) and (boggis1 or bunce1 or bean1);
+	--valid <= (boggis0 or boggis1) or (bunce0 or bunce1) or (bean0 or bean1);
 end architecture buzzer;
 

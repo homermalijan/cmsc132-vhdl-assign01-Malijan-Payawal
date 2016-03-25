@@ -6,67 +6,57 @@ entity buzzer_tb is
 end entity buzzer_tb;
 
 architecture tb of buzzer_tb is
-	signal valid: std_logic;
-	signal boggis0: std_logic;
-	signal boggis1: std_logic;
-	signal bunce0: std_logic;
-	signal bunce1: std_logic;
-	signal bean0: std_logic;
-	signal bean1: std_logic;		
+	signal valid, boggis0, boggis1, bunce0, bunce1, bean0, bean1: std_logic;
 		
 	component buzzer is
 		port (
-		valid: out std_logic;
-		boggis0: in std_logic;
-		boggis1: in std_logic;
-		bunce0: in std_logic;
-		bunce1: in std_logic;
-		bean0: in std_logic;
-		bean1: in std_logic		
+			valid: out std_logic;
+			boggis0: in std_logic;
+			boggis1: in std_logic;
+			bunce0: in std_logic;
+			bunce1: in std_logic;
+			bean0: in std_logic;
+			bean1: in std_logic		
 		);	
 	end component buzzer;
 	
-begin	--begin main bodu of the tb architecture
-	--instantiate the unit under test
+begin	
 	UUT: component buzzer port map(valid, boggis0, boggis1, bunce0, bunce1, bean0, bean1);
 	
-	--main process: generate test vestores and check results
 	main: process is
 		variable temp: unsigned(5 downto 0);	--used in calculations
 		variable expected_valid: std_logic;
-		variable error_count: integer := 0; --number if simulation errors
+		variable error_count: integer := 0;		--number if simulation errors
 		
 		begin
 			report "Start simulation.";
 			
-			--generate all possible input values, since max = 15
 			for count in 0 to 63 loop
 				temp := TO_UNSIGNED(count,6);
-				boggis0 <= std_logic(temp(0)); 		--boggis in
-				boggis1 <= std_logic(temp(1)); 		--boggis out
-				bunce0 <= std_logic(temp(2));		--bunce in
-				bunce1 <= std_logic(temp(3));		--bunce out
-				bean0 <= std_logic(temp(4));		--bean in
-				bean1 <= std_logic(temp(5));		--bean out
+				bean1 <= std_logic(temp(5));						--6th bit
+				bean0 <= std_logic(temp(4));						--5th bit
+				bunce1 <= std_logic(temp(3)); 						--4th bit
+				bunce0 <= std_logic(temp(2)); 						--3rd bit
+				boggis1 <= std_logic(temp(1));						--2nd bit
+				boggis0 <= std_logic(temp(0));						--1st bit
 				
 				--compute expected values
 				if(count=0) then
-					expected_valid := '0';		--all zero
-				elsif (boggis0 = '1' and (boggis1 = '1' or bunce1 = '1' or bean1 = '1')) then	
-					expected_valid := '1';		--boggis in and atleast 1 out = valid
-				elsif (boggis1 = '1' and (bunce0 = '1' or bean0 = '1')) then 
-					expected_valid := '1';		--boggis out and bunce or bean is in
-				elsif (bunce0 = '1' and (bunce1 = '1' or bean1 = '1')) then
-					expected_valid := '1';		--bunce in and bunce or bean out no need to check boggis
-				elsif(bunce1 = '1' and bean0 = '1') then
-					expected_valid := '1';		--bunce out and bean in
-				elsif(bean0 = '1' and bean1 = '1') then
-					expected_valid := '1';		--bean in and out
+					expected_valid := 'U';
+				elsif(boggis0='1' and (boggis1='1' or bunce1='1' or bean1='1' )) then 
+					expected_valid := '1';
+				elsif(boggis1='1' and (bunce0='1' or bean0='1')) then
+					expected_valid := '1';
+				elsif(bunce0='1' and (bunce1='1' or bean1='1')) then
+					expected_valid := '1';
+				elsif(bunce1='1' and bean0='1') then
+					expected_valid := '1';	
+				elsif(bean0='1' and bean1='1') then
+					expected_valid := '1';
 				else
-					expected_valid := '0';		-- all off				
-				end if; 
+					expected_valid := '0';
+				end if;
 				
-				wait for DELAY; 
 				
 				-- check if output of circuit is same with expected value
 				assert(expected_valid = valid)
@@ -74,15 +64,21 @@ begin	--begin main bodu of the tb architecture
 					report "ERROR: Expected valid " &
 						std_logic'image(expected_valid) & " and actual " &
 						std_logic'image(valid) & " at count " &
-						integer'image(count);
+						integer'image(count) &
+						std_logic'image(boggis0) &
+						std_logic'image(bunce0) &
+						std_logic'image(bean0) &
+						std_logic'image(boggis1) &
+						std_logic'image(bunce1) &
+						std_logic'image(bean1);
 						
 				-- increment number of errors		
-				if(expected_valid/=valid) then
+				if(expected_valid/= valid) then
 					error_count := error_count + 1;
 				end if;
-			end loop;
-			
-			wait for DELAY;
+
+				wait for DELAY;
+			end loop;		
 			
 			-- report errors
 			assert(error_count=0)
