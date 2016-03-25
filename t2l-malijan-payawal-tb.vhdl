@@ -1,3 +1,8 @@
+--Homer Malijan
+--Gabrielle Pauline Payawal
+--T-2L
+--VHDL programming assignment testbench
+
 library IEEE; use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
@@ -6,8 +11,10 @@ entity buzzer_tb is
 end entity buzzer_tb;
 
 architecture tb of buzzer_tb is
+	--signals for gtkwave
 	signal valid, boggis0, boggis1, bunce0, bunce1, bean0, bean1: std_logic;
 		
+	--declare component
 	component buzzer is
 		port (
 			valid: out std_logic;
@@ -21,6 +28,7 @@ architecture tb of buzzer_tb is
 	end component buzzer;
 	
 begin	
+	--connect 
 	UUT: component buzzer port map(valid, boggis0, boggis1, bunce0, bunce1, bean0, bean1);
 	
 	main: process is
@@ -33,34 +41,32 @@ begin
 			
 			for count in 0 to 63 loop
 				temp := TO_UNSIGNED(count,6);
-				bean1 <= std_logic(temp(5));						--6th bit
-				bean0 <= std_logic(temp(4));						--5th bit
-				bunce1 <= std_logic(temp(3)); 						--4th bit
-				bunce0 <= std_logic(temp(2)); 						--3rd bit
-				boggis1 <= std_logic(temp(1));						--2nd bit
-				boggis0 <= std_logic(temp(0));						--1st bit
+				bean1 <= std_logic(temp(5));						--bean out
+				bean0 <= std_logic(temp(4));						--bean in
+				bunce1 <= std_logic(temp(3)); 						--bunce out
+				bunce0 <= std_logic(temp(2)); 						--bunce in
+				boggis1 <= std_logic(temp(1));						--boggis out
+				boggis0 <= std_logic(temp(0));						--boggis in
 				
 				--compute expected values
-				if(count=0) then
+				if(count=0) then									--unknown row 0
 					expected_valid := 'U';
 				elsif(boggis0='1' and (boggis1='1' or bunce1='1' or bean1='1' )) then 
-					expected_valid := '1';
+					expected_valid := '1';							--boggis in and any out 
 				elsif(boggis1='1' and (bunce0='1' or bean0='1')) then
-					expected_valid := '1';
+					expected_valid := '1';							--boggis out and bunce or bean in
 				elsif(bunce0='1' and (bunce1='1' or bean1='1')) then
-					expected_valid := '1';
+					expected_valid := '1';							--bunce in and bunce or bean out
 				elsif(bunce1='1' and bean0='1') then
-					expected_valid := '1';	
+					expected_valid := '1';							--bunce out and bean in
 				elsif(bean0='1' and bean1='1') then
-					expected_valid := '1';
+					expected_valid := '1';							--last case bean in and out for valid
 				else
-					expected_valid := '0';
+					expected_valid := '0';							--else off alarm
 				end if;
-				
 				
 				-- check if output of circuit is same with expected value
 				assert(expected_valid = valid)
-					--report "temp is" & unsigned'image(temp);
 					report "ERROR: Expected valid " &
 						std_logic'image(expected_valid) & " and actual " &
 						std_logic'image(valid) & " at count " &
@@ -93,8 +99,3 @@ begin
 			wait; -- terminate the simulation
 		end process;
 end architecture tb;
-
---ghdl -a buzzer.vhdl && ghdl -e buzzer
---ghdl -a buzzer_tb.vhdl && ghdl -e buzzer_tb
---ghdl -r buzzer_tb --vcd=try.vcd
--- gtkwave try.vcd
